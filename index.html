@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四年级数学练习 - 100题 </title>
+<style>
+body { font-family: Arial, sans-serif; max-width: 900px; margin: auto; padding: 20px; background: #fff8f0; font-size: 18px; }
+h1 { text-align: center; color: #ff6600; font-size: 32px; }
+.question { background: #fff4e6; padding: 20px; margin: 20px 0; border-radius: 10px; font-size: 20px; }
+.options { list-style-type: none; padding: 0; font-size: 18px; }
+.options li { margin: 10px 0; }
+button { padding: 15px 25px; margin-top: 20px; border: none; background: #ff6600; color: white; border-radius: 5px; cursor: pointer; font-size: 18px; }
+button:hover { background: #ff8533; }
+.correct-answer { color: green; font-weight: bold; display: block; margin-top: 10px; font-size: 18px; }
+#progress { font-weight: bold; margin-bottom: 15px; font-size: 20px; }
+</style>
+</head>
+<body>
+<h1>四年级数学练习（逐题显示）</h1>
+<div id="quizContainer"></div>
+<button id="nextBtn" onclick="nextQuestion()">下一题</button>
+<p id="result" style="font-size:22px; font-weight:bold;"></p>
+<script>
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateQuestion(id) {
+    const types = ['加减', '乘法', '除法', '应用题', '长度时间'];
+    const type = types[getRandomInt(0, types.length-1)];
+    let q = '', answer = 0, options = [];
+
+    if(type === '加减') {
+        const a = getRandomInt(100, 10000);
+        const b = getRandomInt(100, 10000);
+        if(Math.random() < 0.5) { q = `${a} + ${b} = ?`; answer = a + b; }
+        else { q = `${a} - ${b} = ?`; answer = a - b; }
+    } else if(type === '乘法') {
+        const a = getRandomInt(10, 99);
+        const b = getRandomInt(2, 20);
+        q = `${a} × ${b} = ?`; answer = a * b;
+    } else if(type === '除法') {
+        const b = getRandomInt(2, 20);
+        const answerTemp = getRandomInt(2, 50);
+        const a = b * answerTemp;
+        q = `${a} ÷ ${b} = ?`; answer = answerTemp;
+    } else if(type === '应用题') {
+        const a = getRandomInt(10, 100);
+        const b = getRandomInt(1, 10);
+        q = `一辆车每天运送 ${a} 箱水果，${b} 天运送多少箱？`; answer = a*b;
+    } else if(type === '长度时间') {
+        const hours = getRandomInt(1,5);
+        const minutes = getRandomInt(10,59);
+        q = `小明从上午8点出发，经过 ${hours} 小时 ${minutes} 分钟，他几点到达？(24小时制)`;
+        const totalMinutes = 8*60 + hours*60 + minutes;
+        answer = `${Math.floor(totalMinutes/60)}:${totalMinutes%60<10?'0'+totalMinutes%60:totalMinutes%60}`;
+    }
+
+    if(type === '长度时间') {
+        options.push(answer);
+        while(options.length<4) {
+            let h = getRandomInt(8,15);
+            let m = getRandomInt(0,59);
+            let t = `${h}:${m<10?'0'+m:m}`;
+            if(!options.includes(t)) options.push(t);
+        }
+    } else {
+        options.push(answer);
+        while(options.length<4) {
+            let delta = getRandomInt(-10,10);
+            let opt = (typeof answer==='number'? answer+delta : answer);
+            if(!options.includes(opt)) options.push(opt);
+        }
+    }
+
+    options.sort(()=>Math.random()-0.5);
+
+    return {question: q, options: options, answer: answer};
+}
+
+const quizContainer = document.getElementById('quizContainer');
+let questions = [], userAnswers = [], currentIndex = 0;
+for(let i=0;i<100;i++) {
+    questions.push(generateQuestion(i+1));
+}
+
+function showQuestion(index) {
+    const q = questions[index];
+    let html = `<div id='progress'>第 ${index+1}/100 题</div>`;
+    html += `<div class='question'><p>${q.question}</p><ul class='options'>`;
+    const letters = ['A','B','C','D'];
+    for(let i=0;i<4;i++) {
+        html += `<li><label><input type='radio' name='answer' value='${q.options[i]}'> ${letters[i]}. ${q.options[i]}</label></li>`;
+    }
+    html += `</ul></div>`;
+    quizContainer.innerHTML = html;
+}
+
+function nextQuestion() {
+    const selected = document.querySelector('input[name="answer"]:checked');
+    if(!selected) { alert('请选择一个答案！'); return; }
+    userAnswers.push(selected.value);
+    currentIndex++;
+    if(currentIndex < questions.length) {
+        showQuestion(currentIndex);
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    let score = 0;
+    let html = '<h2>练习完成！</h2>';
+    html += '<ol>';
+    for(let i=0;i<questions.length;i++) {
+        const correct = questions[i].answer;
+        const user = userAnswers[i];
+        if(user==correct) score++;
+        html += `<li>题目: ${questions[i].question} <br>你的答案: ${user} <br>正确答案: ${correct}</li>`;
+    }
+    html += '</ol>';
+    html = `<p>你答对了 ${score} / 100 题</p>` + html;
+    quizContainer.innerHTML = html;
+    document.getElementById('nextBtn').style.display='none';
+}
+
+showQuestion(currentIndex);
+</script>
+</body>
+</html>
